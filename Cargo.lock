@@ -6,8 +6,13 @@ version = 3
 name = "hal"
 version = "0.1.0"
 dependencies = [
+ "macros",
  "register",
 ]
+
+[[package]]
+name = "macros"
+version = "0.1.0"
 
 [[package]]
 name = "register"

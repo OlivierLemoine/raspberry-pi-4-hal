@@ -1,6 +1,6 @@
 [package]
 name = "hal"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Olivier Lemoine <olivier@le-moine.fr>"]
 edition = "2018"
 
@@ -12,3 +12,4 @@ default = ["raspberry-pi-4"]
 
 [dependencies]
 register = { path = "register" }
+macros = { path = "macros" }
