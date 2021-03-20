@@ -4,5 +4,11 @@ version = "0.1.0"
 authors = ["Olivier Lemoine <olivier@le-moine.fr>"]
 edition = "2018"
 
+[features]
+raspberry-pi-4 = []
+raspberry-pi-3 = []
+
+default = ["raspberry-pi-4"]
+
 [dependencies]
 register = { path = "register" }
