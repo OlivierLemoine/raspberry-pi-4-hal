@@ -1,6 +1,6 @@
 [package]
 name = "hal"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Olivier Lemoine <olivier@le-moine.fr>"]
 edition = "2018"
 
