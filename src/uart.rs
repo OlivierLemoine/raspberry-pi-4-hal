@@ -1,3 +1,5 @@
+use core::fmt::Write;
+
 use super::{
     aux::aux,
     gpio::{Function, GPIOTuple, Resistor, GPIO},
@@ -23,12 +25,12 @@ pub unsafe fn init_uart_0() {
 
     aux().MU.control.write(0b11);
 
-    _UartInternals.write_u8_blocking('\n' as u8);
-    _UartInternals.write_u8_blocking('\r' as u8);
+    Uart1.write_u8_blocking('\n' as u8);
+    Uart1.write_u8_blocking('\r' as u8);
 }
 
-pub struct _UartInternals;
-impl _UartInternals {
+pub struct Uart1;
+impl Uart1 {
     pub fn write_str_blocking(&mut self, s: &str) {
         for c in s.chars() {
             self.write_u8_blocking(c as u8)
@@ -53,4 +55,16 @@ impl _UartInternals {
     pub fn try_read_char(&self) -> Option<char> {
         self.try_read_u8().map(|v| v as char)
     }
+}
+
+impl core::fmt::Write for Uart1 {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        self.write_str_blocking(s);
+        Ok(())
+    }
+}
+
+#[doc(hidden)]
+pub fn _print_internals(args: core::fmt::Arguments) {
+    Uart1.write_fmt(args).unwrap();
 }

@@ -5,6 +5,7 @@ extern crate alloc;
 
 pub mod aux;
 pub mod gpio;
+mod macros;
 pub mod mailbox;
 pub mod time;
 pub mod uart;
