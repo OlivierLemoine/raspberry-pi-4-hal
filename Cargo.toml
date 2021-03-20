@@ -12,4 +12,3 @@ default = ["raspberry-pi-4"]
 
 [dependencies]
 register = { path = "register" }
-macros = { path = "macros" }
