@@ -1,0 +1,8 @@
+[package]
+name = "hal"
+version = "0.1.0"
+authors = ["Olivier Lemoine <olivier@le-moine.fr>"]
+edition = "2018"
+
+[dependencies]
+register = { path = "register" }
