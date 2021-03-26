@@ -96,6 +96,13 @@ impl GPIO {
         .set((self.0 % 32) as u32, true);
         self
     }
+    pub unsafe fn get(&self) -> bool {
+        gpio()
+            .GPLEV
+            .value
+            .get_unchecked_mut(self.0 / 32)
+            .get((self.0 % 32) as u32)
+    }
     pub unsafe fn set_function(&mut self, function: Function) -> &mut Self {
         gpio()
             .GPFSEL
@@ -140,7 +147,7 @@ impl GPIO {
     }
     pub unsafe fn falling_edge_detect(&mut self, v: bool) -> &mut Self {
         gpio()
-            .GPHEN
+            .GPFEN
             .value
             .get_unchecked_mut(self.0 / 32)
             .set((self.0 % 32) as u32, v);
