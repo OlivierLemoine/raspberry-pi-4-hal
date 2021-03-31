@@ -91,6 +91,8 @@ pub mod tag_res {
         pub ptr: *mut u8,
         pub bytes: usize,
     }
+    #[derive(Debug, Clone, Copy)]
+    pub struct Handle(pub(crate) u32);
 }
 
 pub mod tag {
@@ -286,6 +288,68 @@ pub mod tag {
             tag_res::Ptr {
                 ptr: input[0] as *mut u8,
                 bytes: input[1] as usize,
+            }
+        }
+    }
+
+    pub enum AllocateMemoryFlags {
+        Discardable = 1 << 0,
+        Normal = 0 << 2,
+        Direct = 1 << 2,
+        Coherent = 2 << 2,
+        L1NonAllocating =
+            AllocateMemoryFlags::Direct as isize | AllocateMemoryFlags::Coherent as isize,
+        Zero = 1 << 4,
+        NoInit = 1 << 5,
+        HintPermalock = 1 << 6,
+    }
+    pub struct AllocateMemory {
+        pub size: u32,
+        pub alignment: u32,
+        pub flags: u32,
+    }
+    impl super::Tag for AllocateMemory {
+        fn tag() -> u32 {
+            0x3000C
+        }
+    }
+    impl super::SerializableTag for AllocateMemory {
+        fn serialize(self, res: &mut Vec<u32>) {
+            res.extend_from_slice(&[
+                Self::tag(),
+                12,
+                END_REQUEST,
+                self.size,
+                self.alignment,
+                self.flags,
+            ])
+        }
+    }
+    impl super::DeserializableTag for AllocateMemory {
+        type Output = super::tag_res::Handle;
+        fn deserialize(input: &[u32]) -> Self::Output {
+            super::tag_res::Handle(input[0])
+        }
+    }
+
+    pub struct ReleaseMemory(pub super::tag_res::Handle);
+    impl Tag for ReleaseMemory {
+        fn tag() -> u32 {
+            0x3000f
+        }
+    }
+    impl SerializableTag for ReleaseMemory {
+        fn serialize(self, res: &mut Vec<u32>) {
+            res.extend_from_slice(&[Self::tag(), 4, self.0 .0])
+        }
+    }
+    impl DeserializableTag for ReleaseMemory {
+        type Output = Result<(), ()>;
+        fn deserialize(input: &[u32]) -> Self::Output {
+            if input[0] == 0 {
+                Ok(())
+            } else {
+                Err(())
             }
         }
     }
