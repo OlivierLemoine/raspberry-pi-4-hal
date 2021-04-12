@@ -1,5 +1,4 @@
-use alloc::{vec, vec::Vec};
-use core::marker::PhantomData;
+//use core::marker::PhantomData;
 use register::*;
 
 pub const MAILBOX_BASE: usize = super::PERIPHERALS_BASE + 0xB880;
@@ -99,735 +98,300 @@ pub mod tag {
     use super::*;
 
     pub struct GetFirmwareVersion;
-    impl super::Tag for GetFirmwareVersion {
-        #[inline]
-        fn tag() -> u32 {
-            0x1
+    impl Tag for GetFirmwareVersion {
+        const ID: u32 = 0x1;
+        const LEN: usize = 1;
+        type Res = (u32,);
+        fn deserialize(from: &[u32]) -> Self::Res {
+            (from[0],)
         }
     }
-    impl super::SerializableTag for GetFirmwareVersion {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 4, END_REQUEST, RESPONSE]);
-        }
-    }
-    impl super::DeserializableTag for GetFirmwareVersion {
-        type Output = u32;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            input[0]
-        }
-    }
+
     pub struct AllocateBuffer;
-    impl super::Tag for AllocateBuffer {
-        #[inline]
-        fn tag() -> u32 {
-            0x40001
+    impl Tag for AllocateBuffer {
+        const ID: u32 = 0x40001;
+        const LEN: usize = 2;
+        type Res = (tag_res::Ptr,);
+        fn serialize(self, buffer: &mut [u32]) {
+            buffer[0] = 16; // Alignment
+            buffer[1] = RESPONSE;
+        }
+        fn deserialize(from: &[u32]) -> Self::Res {
+            (tag_res::Ptr {
+                ptr: from[0] as *mut u8,
+                bytes: from[1] as usize,
+            },)
         }
     }
-    impl super::SerializableTag for AllocateBuffer {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 8, END_REQUEST, 16, RESPONSE]);
-        }
-    }
-    impl super::DeserializableTag for AllocateBuffer {
-        type Output = tag_res::Ptr;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            tag_res::Ptr {
-                ptr: input[0] as *mut u8,
-                bytes: input[1] as usize,
-            }
-        }
-    }
+
     pub struct SetPhysicalSize {
         pub width: u32,
         pub height: u32,
     }
-    impl super::Tag for SetPhysicalSize {
-        #[inline]
-        fn tag() -> u32 {
-            0x48003
+    impl Tag for SetPhysicalSize {
+        const ID: u32 = 0x48003;
+        const LEN: usize = 2;
+        type Res = ();
+        fn serialize(self, buffer: &mut [u32]) {
+            buffer[0] = self.width;
+            buffer[1] = self.height;
+        }
+        fn deserialize(_: &[u32]) -> Self::Res {
+            ()
         }
     }
-    impl super::SerializableTag for SetPhysicalSize {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 8, END_REQUEST, self.width, self.height]);
-        }
-    }
+
     pub struct GetPhysicalSize;
-    impl super::Tag for GetPhysicalSize {
-        #[inline]
-        fn tag() -> u32 {
-            0x40003
+    impl Tag for GetPhysicalSize {
+        const ID: u32 = 0x40003;
+        const LEN: usize = 2;
+        type Res = (tag_res::Size,);
+        fn deserialize(from: &[u32]) -> Self::Res {
+            (tag_res::Size {
+                width: from[0],
+                height: from[1],
+            },)
         }
     }
-    impl super::SerializableTag for GetPhysicalSize {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 8, END_REQUEST, RESPONSE, RESPONSE]);
-        }
-    }
-    impl super::DeserializableTag for GetPhysicalSize {
-        type Output = tag_res::Size;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            tag_res::Size {
-                width: input[0],
-                height: input[1],
-            }
-        }
-    }
+
     pub struct SetVirtualSize {
         pub width: u32,
         pub height: u32,
     }
-    impl super::Tag for SetVirtualSize {
-        #[inline]
-        fn tag() -> u32 {
-            0x48004
+    impl Tag for SetVirtualSize {
+        const ID: u32 = 0x48004;
+        const LEN: usize = 2;
+        type Res = ();
+        fn serialize(self, buffer: &mut [u32]) {
+            buffer[0] = self.width;
+            buffer[1] = self.height;
+        }
+        fn deserialize(_: &[u32]) -> Self::Res {
+            ()
         }
     }
-    impl super::SerializableTag for SetVirtualSize {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 8, END_REQUEST, self.width, self.height]);
-        }
-    }
+
     pub struct GetVirtualSize;
-    impl super::Tag for GetVirtualSize {
-        #[inline]
-        fn tag() -> u32 {
-            0x40004
+    impl Tag for GetVirtualSize {
+        const ID: u32 = 0x40004;
+        const LEN: usize = 2;
+        type Res = (tag_res::Size,);
+        fn deserialize(from: &[u32]) -> Self::Res {
+            (tag_res::Size {
+                width: from[0],
+                height: from[1],
+            },)
         }
     }
-    impl super::SerializableTag for GetVirtualSize {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 8, END_REQUEST, RESPONSE, RESPONSE]);
-        }
-    }
-    impl super::DeserializableTag for GetVirtualSize {
-        type Output = tag_res::Size;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            tag_res::Size {
-                width: input[0],
-                height: input[1],
-            }
-        }
-    }
-    pub struct GetDepth;
-    impl super::Tag for GetDepth {
-        #[inline]
-        fn tag() -> u32 {
-            0x48005
-        }
-    }
-    impl super::SerializableTag for GetDepth {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 4, END_REQUEST, RESPONSE]);
-        }
-    }
-    impl super::DeserializableTag for GetDepth {
-        type Output = u32;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            input[0]
-        }
-    }
+
     pub struct SetDepth(pub u32);
-    impl super::Tag for SetDepth {
-        #[inline]
-        fn tag() -> u32 {
-            0x48005
+    impl Tag for SetDepth {
+        const ID: u32 = 0x48005;
+        const LEN: usize = 1;
+        type Res = ();
+        fn serialize(self, buffer: &mut [u32]) {
+            buffer[0] = self.0;
+        }
+        fn deserialize(_: &[u32]) -> Self::Res {
+            ()
         }
     }
-    impl super::SerializableTag for SetDepth {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 4, END_REQUEST, self.0]);
+
+    pub struct GetDepth;
+    impl Tag for GetDepth {
+        const ID: u32 = 0x48005;
+        const LEN: usize = 1;
+        type Res = (u32,);
+        fn deserialize(from: &[u32]) -> Self::Res {
+            (from[0],)
         }
     }
+
     pub struct GetPitch;
-    impl super::Tag for GetPitch {
-        #[inline]
-        fn tag() -> u32 {
-            0x40008
-        }
-    }
-    impl super::SerializableTag for GetPitch {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 8, END_REQUEST, RESPONSE, RESPONSE]);
-        }
-    }
-    impl super::DeserializableTag for GetPitch {
-        type Output = u32;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            input[0]
+    impl Tag for GetPitch {
+        const ID: u32 = 0x40008;
+        const LEN: usize = 2;
+        type Res = (u32,);
+        fn deserialize(from: &[u32]) -> Self::Res {
+            (from[0],)
         }
     }
 
-    pub struct BlankScreen(pub bool);
-    impl super::Tag for BlankScreen {
-        #[inline]
-        fn tag() -> u32 {
-            0x40002
-        }
-    }
-    impl super::SerializableTag for BlankScreen {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 4, END_REQUEST, if self.0 { 1 } else { 0 }]);
-        }
-    }
     pub struct GetArmMemory;
-    impl super::Tag for GetArmMemory {
-        #[inline]
-        fn tag() -> u32 {
-            0x10005
-        }
-    }
-    impl super::SerializableTag for GetArmMemory {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 8, END_REQUEST, RESPONSE, RESPONSE]);
-        }
-    }
-    impl super::DeserializableTag for GetArmMemory {
-        type Output = tag_res::Ptr;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            tag_res::Ptr {
-                ptr: input[0] as *mut u8,
-                bytes: input[1] as usize,
-            }
-        }
-    }
-
-    pub enum AllocateMemoryFlags {
-        Discardable = 1 << 0,
-        Normal = 0 << 2,
-        Direct = 1 << 2,
-        Coherent = 2 << 2,
-        L1NonAllocating =
-            AllocateMemoryFlags::Direct as isize | AllocateMemoryFlags::Coherent as isize,
-        Zero = 1 << 4,
-        NoInit = 1 << 5,
-        HintPermalock = 1 << 6,
-    }
-    pub struct AllocateMemory {
-        pub size: u32,
-        pub alignment: u32,
-        pub flags: u32,
-    }
-    impl super::Tag for AllocateMemory {
-        fn tag() -> u32 {
-            0x3000C
-        }
-    }
-    impl super::SerializableTag for AllocateMemory {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[
-                Self::tag(),
-                12,
-                END_REQUEST,
-                self.size,
-                self.alignment,
-                self.flags,
-            ])
-        }
-    }
-    impl super::DeserializableTag for AllocateMemory {
-        type Output = super::tag_res::Handle;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            super::tag_res::Handle(input[0])
-        }
-    }
-
-    pub struct ReleaseMemory(pub super::tag_res::Handle);
-    impl Tag for ReleaseMemory {
-        fn tag() -> u32 {
-            0x3000f
-        }
-    }
-    impl SerializableTag for ReleaseMemory {
-        fn serialize(self, res: &mut Vec<u32>) {
-            res.extend_from_slice(&[Self::tag(), 4, self.0 .0])
-        }
-    }
-    impl DeserializableTag for ReleaseMemory {
-        type Output = Result<(), ()>;
-        fn deserialize(input: &[u32]) -> Self::Output {
-            if input[0] == 0 {
-                Ok(())
-            } else {
-                Err(())
-            }
+    impl Tag for GetArmMemory {
+        const ID: u32 = 0x10005;
+        const LEN: usize = 2;
+        type Res = (tag_res::Ptr,);
+        fn deserialize(from: &[u32]) -> Self::Res {
+            (tag_res::Ptr {
+                ptr: from[0] as *mut u8,
+                bytes: from[1] as usize,
+            },)
         }
     }
 }
 
-pub trait Tag {
-    fn tag() -> u32;
+pub trait TagsHolder: Sized {
+    const LEN: usize;
+    type Res;
+    fn serialize(self, buffer: &mut [u32]);
+    fn deserialize(buffer: &[u32]) -> Self::Res;
 }
-pub trait SerializableTag: Tag {
-    fn serialize(self, res: &mut Vec<u32>);
+pub trait ResHolder: Sized {
+    //
 }
-pub trait DeserializableTag: Tag {
-    type Output;
-    fn deserialize(input: &[u32]) -> Self::Output;
+pub struct NoTag;
+impl TagsHolder for NoTag {
+    const LEN: usize = 0;
+    type Res = ();
+    fn serialize(self, buffer: &mut [u32]) {
+        assert!(buffer.is_empty());
+    }
+    fn deserialize(buffer: &[u32]) -> Self::Res {
+        assert!(buffer.is_empty());
+        ()
+    }
+}
+pub struct Tags<T, O>(T, O);
+impl<T: Tag, O: TagsHolder> TagsHolder for Tags<T, O> {
+    const LEN: usize = T::LEN + 3 + O::LEN;
+    type Res = (T::Res, O::Res);
+    fn serialize(self, buffer: &mut [u32]) {
+        let len = T::LEN + 3;
+        let split = buffer.len() - len;
+        let (b_o, b_t) = buffer.split_at_mut(split);
+        self.1.serialize(b_o);
+        let buffer = b_t;
+        buffer[0] = T::ID;
+        buffer[1] = 4 * (T::LEN as u32);
+        //buffer[2] = END_REQUEST;
+        let buffer = &mut buffer[3..];
+        self.0.serialize(buffer);
+    }
+    fn deserialize(buffer: &[u32]) -> Self::Res {
+        let len = T::LEN + 3;
+        let split = buffer.len() - len;
+        let (b_o, b_t) = buffer.split_at(split);
+        let other = O::deserialize(b_o);
+        let tag_res = T::deserialize(&b_t[3..]);
+
+        (tag_res, other)
+    }
 }
 
-pub mod state {
-    pub struct Draft;
-    pub struct Sent;
+pub trait Flatten {
+    type Out;
+    fn flatten(self) -> Self::Out;
+}
+impl Flatten for () {
+    type Out = ();
+    fn flatten(self) -> Self::Out {
+        ()
+    }
+}
+impl Flatten for ((), ()) {
+    type Out = ();
+    fn flatten(self) -> Self::Out {
+        ()
+    }
+}
+impl<A> Flatten for ((A,), ()) {
+    type Out = A;
+    fn flatten(self) -> Self::Out {
+        let ((a,), _) = self;
+        a
+    }
+}
+impl<A> Flatten for ((A,), ((), ())) {
+    type Out = A;
+    fn flatten(self) -> Self::Out {
+        let ((a,), _) = self;
+        a
+    }
+}
+impl<A> Flatten for ((A,), ((), ((), ()))) {
+    type Out = A;
+    fn flatten(self) -> Self::Out {
+        let ((a,), _) = self;
+        a
+    }
+}
+impl<A> Flatten for ((A,), ((), ((), ((), ())))) {
+    type Out = A;
+    fn flatten(self) -> Self::Out {
+        let ((a,), _) = self;
+        a
+    }
+}
+impl<A, B, C, D> Flatten for ((A,), ((B,), ((C,), ((D,), ())))) {
+    type Out = (D, C, B, A);
+    fn flatten(self) -> Self::Out {
+        let ((a,), ((b,), ((c,), ((d,), _)))) = self;
+        (d, c, b, a)
+    }
 }
 
-pub struct Message<STATE> {
-    buffer: Vec<u32>,
-    _state: core::marker::PhantomData<STATE>,
+pub trait Tag: Sized {
+    const ID: u32;
+    const LEN: usize;
+    type Res;
+    fn serialize(self, buffer: &mut [u32]) {
+        for i in 0..Self::LEN {
+            //buffer[i] = RESPONSE
+        }
+    }
+    fn deserialize(from: &[u32]) -> Self::Res;
 }
-impl Message<state::Draft> {
+
+#[repr(C, align(16))]
+struct Align16Buffer<T, const LEN: usize>([T; LEN]);
+
+pub struct Message<T> {
+    tags: T,
+}
+impl Message<NoTag> {
     pub fn new() -> Self {
-        let buffer = vec![
-            3 * 4, // size
-            0,     // somthing I don't understand yet
-            0,     // null terminated message
-        ];
-
+        Message { tags: NoTag }
+    }
+    pub fn with<T: Tag>(self, tag: T) -> Message<Tags<T, NoTag>> {
         Message {
-            buffer,
-            _state: PhantomData,
+            tags: Tags(tag, NoTag),
         }
     }
-    pub fn with_tag<T: SerializableTag>(mut self, tag: T) -> Self {
-        self.add_tag(tag);
-        self
+}
+impl<O1, O2> Message<Tags<O1, O2>> {
+    pub fn with<T: Tag>(self, tag: T) -> Message<Tags<T, Tags<O1, O2>>> {
+        Message {
+            tags: Tags(tag, self.tags),
+        }
     }
-    pub fn add_tag<T: SerializableTag>(&mut self, tag: T) -> &mut Self {
-        self.buffer.pop(); // remove null terminated
-        tag.serialize(&mut self.buffer); // write tag
-        self.buffer.push(0); // null terminated
+    pub fn commit(self) -> Result<<<Tags<O1, O2> as TagsHolder>::Res as Flatten>::Out, ()>
+    where
+        O1: Tag,
+        O2: TagsHolder,
+        [u32; Tags::<O1, O2>::LEN + 3]: Sized,
+        <Tags<O1, O2> as TagsHolder>::Res: Flatten,
+    {
+        let mut buffer = Align16Buffer([0u32; Tags::<O1, O2>::LEN + 3]); // size + request code + tags + zero terminated
+        buffer.0[0] = (buffer.0.len() << 2) as u32; // Size
+                                                    //buffer.0[1] = 0; // Req code
 
-        self.buffer[0] = (self.buffer.len() as u32) << 2; // update message len
-        self
-    }
-    pub fn commit(mut self) -> Result<Message<state::Sent>, ()> {
-        self.buffer.reserve(4);
-        for _ in 0..4 {
-            self.buffer.push(0);
-        }
-        let v = (self.buffer.as_ptr() as u32) >> 4;
-        Mailbox
+        let buffer_len = buffer.0.len();
+        self.tags.serialize(&mut buffer.0[2..buffer_len - 1]);
+
+        //buffer.0[buffer.0.len() - 1] = 0; // Zero terminated
+
+        let v = (buffer.0.as_ptr() as u32) >> 4;
+        let _ = Mailbox
             .write_message(Channel::TagsArmToVC, v)
             .read_message(Channel::TagsArmToVC);
 
-        let Message { buffer, _state } = self;
-
-        if buffer[1] != 0x80000000 {
+        if buffer.0[1] != 0x80000000 {
             return Err(());
         }
 
-        Ok(Message {
-            buffer,
-            _state: PhantomData,
-        })
+        let res = Tags::<O1, O2>::deserialize(&buffer.0[2..buffer_len - 1]);
+
+        Ok(res.flatten())
     }
 }
-impl Message<state::Sent> {
-    pub fn get<T: DeserializableTag>(&self) -> Option<T::Output> {
-        let mut ptr = 2;
-
-        loop {
-            if self.buffer[ptr] == 0 {
-                break None;
-            }
-
-            let size = (self.buffer[ptr + 1] >> 2) + 3;
-            let next_ptr = ptr + size as usize;
-
-            if self.buffer[ptr] == T::tag() {
-                break Some(T::deserialize(&self.buffer[ptr + 3..next_ptr]));
-            };
-
-            ptr = next_ptr;
-        }
-    }
-}
-
-// impl Mailbox {
-//     pub fn send_to_vc(&mut self) {
-//         let _res = unsafe {
-//             MailboxInterface::write(
-//                 self.buffer.as_mut_ptr() as *mut u32,
-//                 Mailbox0Channel::TagsArmToVC,
-//             );
-//             MailboxInterface::read(Mailbox0Channel::TagsArmToVC)
-//         };
-//     }
-// }
-
-// pub trait Getter: Sized {
-//     type Output;
-//     fn tag() -> Tag;
-//     fn parse(buffer: &[U32Alligned16]) -> Self::Output;
-// }
-
-// pub mod tag {
-//     pub struct FirmwareVersion;
-//     pub struct AllocateBuffer;
-//     pub struct GetPhysicalSize {
-//         pub w: usize,
-//         pub h: usize,
-//     }
-//     pub struct GetPitch;
-// }
-// impl Getter for tag::FirmwareVersion {
-//     type Output = u32;
-//     #[inline]
-//     fn tag() -> Tag {
-//         Tag::GetFirmwareVersion
-//     }
-//     #[inline]
-//     fn parse(buffer: &[U32Alligned16]) -> Self::Output {
-//         *buffer[0]
-//     }
-// }
-// impl Getter for tag::AllocateBuffer {
-//     type Output = *mut ();
-//     #[inline]
-//     fn tag() -> Tag {
-//         Tag::AllocateBuffer(0)
-//     }
-//     #[inline]
-//     fn parse(buffer: &[U32Alligned16]) -> Self::Output {
-//         (*buffer[0] & 0x3FFFFFFF) as *mut ()
-//     }
-// }
-// impl Getter for tag::GetPhysicalSize {
-//     type Output = tag::GetPhysicalSize;
-//     #[inline]
-//     fn tag() -> Tag {
-//         Tag::GetPhysicalSize
-//     }
-//     #[inline]
-//     fn parse(buffer: &[U32Alligned16]) -> Self::Output {
-//         tag::GetPhysicalSize {
-//             w: *buffer[0] as usize,
-//             h: *buffer[1] as usize,
-//         }
-//     }
-// }
-// impl Getter for tag::GetPitch {
-//     type Output = u32;
-//     #[inline]
-//     fn tag() -> Tag {
-//         Tag::GetPitch
-//     }
-//     #[inline]
-//     fn parse(buffer: &[U32Alligned16]) -> Self::Output {
-//         *buffer[0]
-//     }
-// }
-
-//\////
-
-//
-
-//
-
-// pub enum Tag {
-//     GetFirmwareVersion,
-
-//     /* Hardware */
-//     GetBoardModel,
-//     GetBoardRevision,
-//     GetBoardMacAddress,
-//     GetBoardSerial,
-//     GetArmMemory,
-//     GetVcMemory,
-//     GetClocks,
-
-//     /* Config */
-//     GetCommandLine,
-
-//     /* Shared resource management */
-//     GetDMAChannels,
-
-//     /* Power */
-//     GetPowerState,
-//     GetTIMING,
-//     SetPowerState,
-
-//     /* Clocks */
-//     GetClockState,
-//     SetClockState,
-//     GetClockRate(u32),
-//     SetClockRate {
-//         clk_id: u32,
-//         rate_hz: u32,
-//         skip_turbo: bool,
-//     },
-//     GetMaxClockRate(u32),
-//     GetMinClockRate(u32),
-//     GetTurbo,
-//     SetTurbo,
-
-//     /* Voltage */
-//     GetVoltage,
-//     SetVoltage,
-//     GetMaxVoltage,
-//     GetMinVoltage,
-//     GetTemperature,
-//     GetMaxTemperature,
-//     ALLOCATE_MEMORY,
-//     LOCK_MEMORY,
-//     UNLOCK_MEMORY,
-//     RELEASE_MEMORY,
-//     EXECUTE_CODE,
-//     GetDISPMANX_MEM_HANDLE,
-//     GetEDID_BLOCK,
-
-//     /* Framebuffer */
-//     AllocateBuffer(u32),
-//     RELEASE_BUFFER,
-//     BLANK_SCREEN,
-//     GetPhysicalSize,
-//     TestPhysicalSize {
-//         w: u32,
-//         h: u32,
-//     },
-//     SetPhysicalSize {
-//         w: u32,
-//         h: u32,
-//     },
-//     GetVirtualSize,
-//     TestVirtualSize {
-//         w: u32,
-//         h: u32,
-//     },
-//     SetVirtualSize {
-//         w: u32,
-//         h: u32,
-//     },
-//     GetDepth,
-//     TestDEPTH,
-//     SetDepth(u32),
-//     GetPIXEL_ORDER,
-//     TestPIXEL_ORDER,
-//     SetPixelOrder(u32),
-//     GetALPHA_MODE,
-//     TestALPHA_MODE,
-//     SetALPHA_MODE(u32),
-//     GetPitch,
-//     GetVirtualOffset,
-//     TestVirtualOffset,
-//     SetVirtualOffset {
-//         w: u32,
-//         h: u32,
-//     },
-//     GetOVERSCAN,
-//     TestOVERSCAN,
-//     SetOVERSCAN {
-//         top: u32,
-//         bottom: u32,
-//         left: u32,
-//         right: u32,
-//     },
-//     GetPALETTE,
-//     TestPALETTE,
-//     SetPALETTE,
-//     SetCURSOR_INFO,
-//     SetCURSORState,
-// }
-// impl Tag {
-//     const fn tag_code(&self) -> u32 {
-//         match self {
-//             Tag::GetFirmwareVersion => 0x1,
-//             Tag::GetBoardModel => 0x10001,
-//             Tag::GetBoardRevision => 0x10002,
-//             Tag::GetBoardMacAddress => 0x10003,
-//             Tag::GetBoardSerial => 0x10004,
-//             Tag::GetArmMemory => 0x10005,
-//             Tag::GetVcMemory => 0x10006,
-//             Tag::GetClocks => 0x10007,
-//             Tag::GetCommandLine => 0x50001,
-//             Tag::GetDMAChannels => 0x60001,
-//             Tag::GetPowerState => 0x20001,
-//             Tag::GetTIMING => 0x20002,
-//             Tag::SetPowerState => 0x28001,
-//             Tag::GetClockState => 0x30001,
-//             Tag::SetClockState => 0x38001,
-//             Tag::GetClockRate(..) => 0x30002,
-//             Tag::SetClockRate { .. } => 0x38002,
-//             Tag::GetMaxClockRate(..) => 0x30004,
-//             Tag::GetMinClockRate(..) => 0x30007,
-//             Tag::GetTurbo => 0x30009,
-//             Tag::SetTurbo => 0x38009,
-//             Tag::GetVoltage => 0x30003,
-//             Tag::SetVoltage => 0x38003,
-//             Tag::GetMaxVoltage => 0x30005,
-//             Tag::GetMinVoltage => 0x30008,
-//             Tag::GetTemperature => 0x30006,
-//             Tag::GetMaxTemperature => 0x3000A,
-//             Tag::ALLOCATE_MEMORY => 0x3000C,
-//             Tag::LOCK_MEMORY => 0x3000D,
-//             Tag::UNLOCK_MEMORY => 0x3000E,
-//             Tag::RELEASE_MEMORY => 0x3000F,
-//             Tag::EXECUTE_CODE => 0x30010,
-//             Tag::GetDISPMANX_MEM_HANDLE => 0x30014,
-//             Tag::GetEDID_BLOCK => 0x30020,
-//             Tag::AllocateBuffer(..) => 0x40001,
-//             Tag::RELEASE_BUFFER => 0x48001,
-//             Tag::BLANK_SCREEN => 0x40002,
-//             Tag::GetPhysicalSize => 0x40003,
-//             Tag::TestPhysicalSize { .. } => 0x44003,
-//             Tag::SetPhysicalSize { .. } => 0x48003,
-//             Tag::GetVirtualSize => 0x40004,
-//             Tag::TestVirtualSize { .. } => 0x44004,
-//             Tag::SetVirtualSize { .. } => 0x48004,
-//             Tag::GetDepth => 0x40005,
-//             Tag::TestDEPTH => 0x44005,
-//             Tag::SetDepth(..) => 0x48005,
-//             Tag::GetPIXEL_ORDER => 0x40006,
-//             Tag::TestPIXEL_ORDER => 0x44006,
-//             Tag::SetPixelOrder(..) => 0x48006,
-//             Tag::GetALPHA_MODE => 0x40007,
-//             Tag::TestALPHA_MODE => 0x44007,
-//             Tag::SetALPHA_MODE(..) => 0x48007,
-//             Tag::GetPitch => 0x40008,
-//             Tag::GetVirtualOffset => 0x40009,
-//             Tag::TestVirtualOffset => 0x44009,
-//             Tag::SetVirtualOffset { .. } => 0x48009,
-//             Tag::GetOVERSCAN => 0x4000A,
-//             Tag::TestOVERSCAN => 0x4400A,
-//             Tag::SetOVERSCAN { .. } => 0x4800A,
-//             Tag::GetPALETTE => 0x4000B,
-//             Tag::TestPALETTE => 0x4400B,
-//             Tag::SetPALETTE => 0x4800B,
-//             Tag::SetCURSOR_INFO => 0x8011,
-//             Tag::SetCURSORState => 0x8010,
-//         }
-//     }
-//     fn serialize_into(&self, buffer: &mut alloc::vec::Vec<U32Alligned16>) {
-//         match self {
-//             Tag::GetFirmwareVersion
-//             | Tag::GetBoardModel
-//             | Tag::GetBoardRevision
-//             | Tag::GetBoardMacAddress
-//             | Tag::GetBoardSerial
-//             | Tag::GetArmMemory
-//             | Tag::GetVcMemory
-//             | Tag::GetDMAChannels => buffer.extend_from_slice(&[
-//                 U32Alligned16(self.tag_code()),
-//                 U32Alligned16(8),
-//                 REQUEST,
-//                 RES,
-//                 RES,
-//             ]),
-//             Tag::GetClocks | Tag::GetCommandLine => {
-//                 unimplemented!()
-//                 // buffer.extend_from_slice(&[self.tag_code(), 256, REQUEST]);
-//                 // buffer.resize(buffer.len() + (256 >> 2), RES);
-//             }
-//             Tag::AllocateBuffer(x)
-//             | Tag::GetClockRate(x)
-//             | Tag::GetMaxClockRate(x)
-//             | Tag::GetMinClockRate(x) => {
-//                 buffer.extend_from_slice(&[
-//                     U32Alligned16(self.tag_code()),
-//                     U32Alligned16(8),
-//                     REQUEST,
-//                     U32Alligned16(*x),
-//                     RES,
-//                 ]);
-//             }
-//             Tag::SetClockRate {
-//                 clk_id,
-//                 rate_hz,
-//                 skip_turbo,
-//             } => {
-//                 buffer.extend_from_slice(&[
-//                     U32Alligned16(self.tag_code()),
-//                     U32Alligned16(12),
-//                     REQUEST,
-//                     U32Alligned16(*clk_id),
-//                     U32Alligned16(*rate_hz),
-//                     U32Alligned16(if *skip_turbo { 1 } else { 0 }),
-//                 ]);
-//             }
-//             Tag::SetPhysicalSize { w, h }
-//             | Tag::SetVirtualSize { w, h }
-//             | Tag::SetVirtualOffset { w, h }
-//             | Tag::TestPhysicalSize { w, h }
-//             | Tag::TestVirtualSize { w, h } => {
-//                 buffer.extend_from_slice(&[
-//                     U32Alligned16(self.tag_code()),
-//                     U32Alligned16(8),
-//                     REQUEST,
-//                     U32Alligned16(*w),
-//                     U32Alligned16(*h),
-//                 ]);
-//             }
-//             Tag::GetPhysicalSize | Tag::GetVirtualSize | Tag::GetVirtualOffset => {
-//                 buffer.extend_from_slice(&[
-//                     U32Alligned16(self.tag_code()),
-//                     U32Alligned16(8),
-//                     REQUEST,
-//                     RES,
-//                     RES,
-//                 ]);
-//             }
-//             Tag::GetALPHA_MODE | Tag::GetDepth | Tag::GetPitch | Tag::GetPIXEL_ORDER => {
-//                 buffer.extend_from_slice(&[
-//                     U32Alligned16(self.tag_code()),
-//                     U32Alligned16(4),
-//                     REQUEST,
-//                     RES,
-//                 ]);
-//             }
-//             Tag::SetALPHA_MODE(x) | Tag::SetDepth(x) | Tag::SetPixelOrder(x) => {
-//                 buffer.extend_from_slice(&[
-//                     U32Alligned16(self.tag_code()),
-//                     U32Alligned16(4),
-//                     REQUEST,
-//                     U32Alligned16(*x),
-//                 ]);
-//             }
-//             Tag::GetOVERSCAN => {
-//                 buffer.extend_from_slice(&[
-//                     U32Alligned16(self.tag_code()),
-//                     U32Alligned16(16),
-//                     REQUEST,
-//                     RES,
-//                     RES,
-//                     RES,
-//                     RES,
-//                 ]);
-//             }
-//             Tag::SetOVERSCAN {
-//                 top,
-//                 bottom,
-//                 left,
-//                 right,
-//             } => {
-//                 buffer.extend_from_slice(&[
-//                     U32Alligned16(self.tag_code()),
-//                     U32Alligned16(16),
-//                     REQUEST,
-//                     U32Alligned16(*top),
-//                     U32Alligned16(*bottom),
-//                     U32Alligned16(*left),
-//                     U32Alligned16(*right),
-//                 ]);
-//             }
-//             _ => {
-//                 panic!("Not supported");
-//             }
-//         }
-//     }
-// }
-
-// // #[repr(C, align(16))]
-// #[repr(transparent)]
-// #[derive(Clone, Copy, Debug)]
-// pub struct U32Alligned16(u32);
-// impl core::ops::Deref for U32Alligned16 {
-//     type Target = u32;
-//     fn deref(&self) -> &Self::Target {
-//         &self.0
-//     }
-// }
-// impl core::ops::DerefMut for U32Alligned16 {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         &mut self.0
-//     }
-// }

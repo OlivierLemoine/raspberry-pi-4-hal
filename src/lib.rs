@@ -1,7 +1,8 @@
 #![no_std]
 #![feature(asm)]
-
-extern crate alloc;
+#![feature(const_generics)]
+#![feature(const_fn)]
+#![feature(const_evaluatable_checked)]
 
 pub mod aux;
 pub mod gpio;
@@ -42,19 +43,14 @@ pub unsafe fn init() {
 
 pub fn firmware_version() -> u32 {
     mailbox::Message::new()
-        .with_tag(mailbox::tag::GetFirmwareVersion)
+        .with(mailbox::tag::GetFirmwareVersion)
         .commit()
-        .unwrap()
-        .get::<mailbox::tag::GetFirmwareVersion>()
         .unwrap()
 }
 
-pub fn memory() -> &'static [u8] {
-    let ptr = mailbox::Message::new()
-        .with_tag(mailbox::tag::GetArmMemory)
+pub fn memory() -> mailbox::tag_res::Ptr {
+    mailbox::Message::new()
+        .with(mailbox::tag::GetArmMemory)
         .commit()
         .unwrap()
-        .get::<mailbox::tag::GetArmMemory>()
-        .unwrap();
-    unsafe { core::slice::from_raw_parts(ptr.ptr, ptr.bytes) }
 }
